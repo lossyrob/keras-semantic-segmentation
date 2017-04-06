@@ -20,4 +20,7 @@ USER root
 RUN mkdir /opt/data
 RUN chown -R keras:root /opt/data
 
-CMD ["bash"]
+COPY startup.sh /usr/local/bin/
+
+CMD ["/usr/local/bin/startup.sh"]
+

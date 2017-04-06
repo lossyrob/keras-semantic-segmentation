@@ -13,7 +13,12 @@ Setup infrastructure resources required to support GPU development.
 "
 }
 
+# TODO: Grab the tvars from S3
+RV_SETTINGS_BUCKET=rastervision-staging-config-us-east-1
+
 PROJECT_ROOT="$(dirname "$(dirname "$(readlink -f "${0}")")")"
+
+DIR="$(dirname "$0")"
 
 if [ "${BASH_SOURCE[0]}" = "${0}" ]
 then
@@ -21,44 +26,50 @@ then
     then
         usage
     else
-        pushd "$(dirname "$0")/../deployment/terraform"
+        TERRAFORM_DIR="${DIR}/../deployment/terraform"
+
+        pushd "${TERRAFORM_DIR}"
 
         case "${1}" in
             destroy)
-                terraform "$@"
+                terraform destroy \
+                  -var-file="${RV_SETTINGS_BUCKET}.tfvars"
                 ;;
             taint)
                 terraform "$@"
                 ;;
             plan)
-                terraform "$@" -out="gpu-worker.tfplan"
+                terraform get -update
+                terraform plan \
+                  -var-file="${RV_SETTINGS_BUCKET}.tfvars" \
+                  -out="gpu-worker.tfplan"
                 ;;
             apply)
                 terraform apply "gpu-worker.tfplan"
                 ;;
-            start)
-                NB_INSTANCES=${2:-1}
-                echo "NB_INSTANCES: $NB_INSTANCES"
-                "$PROJECT_ROOT/scripts/infra" plan -var fleet_target_capacity="$NB_INSTANCES"
-                "$PROJECT_ROOT/scripts/infra" apply
+            # start)
+            #     NB_INSTANCES=${2:-1}
+            #     echo "NB_INSTANCES: $NB_INSTANCES"
+            #     "$PROJECT_ROOT/scripts/infra" plan -var fleet_target_capacity="$NB_INSTANCES"
+            #     "$PROJECT_ROOT/scripts/infra" apply
 
-                # Wait for it to be ready, then get the hostname
-                echo "Waiting for the EC2 instance to finish initializing"
-                aws ec2 wait instance-status-ok --filter \
-                            'Name=instance-state-code,Values=0,16'
+            #     # Wait for it to be ready, then get the hostname
+            #     echo "Waiting for the EC2 instance to finish initializing"
+            #     aws ec2 wait instance-status-ok --filter \
+            #                 'Name=instance-state-code,Values=0,16'
 
-                EC2_HOSTNAMES="$(aws ec2 describe-instances \
-                    --filter "Name=instance-state-code,Values=16" \
-                    --filter "Name=instance-type,Values=p2.xlarge" \
-                    --query 'Reservations[].Instances[].PublicDnsName' --output text)"
+            #     EC2_HOSTNAMES="$(aws ec2 describe-instances \
+            #         --filter "Name=instance-state-code,Values=16" \
+            #         --filter "Name=instance-type,Values=p2.xlarge" \
+            #         --query 'Reservations[].Instances[].PublicDnsName' --output text)"
 
-                echo "HOSTNAMES: $EC2_HOSTNAMES"
-                echo "Remember to run './scripts/infra destroy' when done!"
-                ;;
-            *)
-                echo "ERROR: I don't have support for that Terraform subcommand!"
-                exit 1
-                ;;
+            #     echo "HOSTNAMES: $EC2_HOSTNAMES"
+            #     echo "Remember to run './scripts/infra destroy' when done!"
+            #     ;;
+            # *)
+            #     echo "ERROR: I don't have support for that Terraform subcommand!"
+            #     exit 1
+            #     ;;
         esac
 
         popd
