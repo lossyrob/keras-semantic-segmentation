@@ -1,44 +1,63 @@
-from keras.models import Model
+# -*- coding: utf-8 -*-
+from os.path import exists
+
+from keras.optimizers import SGD
 from keras.layers import Input, merge, ZeroPadding2D
 from keras.layers.core import Dense, Dropout, Activation
 from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import AveragePooling2D, GlobalAveragePooling2D, MaxPooling2D
 from keras.layers.normalization import BatchNormalization
+from keras.models import Model
 import keras.backend as K
 
-from custom_layers import Scale
+from sklearn.metrics import log_loss
 
-def DenseNet(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0,
-             dropout_rate=0.0, weight_decay=1e-4, classes=1000, weights_path=None):
-    '''Instantiate the DenseNet 121 architecture,
-        # Arguments
-            nb_dense_block: number of dense blocks to add to end
-            growth_rate: number of filters to add per dense block
-            nb_filter: initial number of filters
-            reduction: reduction factor of transition blocks.
-            dropout_rate: dropout rate
-            weight_decay: weight decay factor
-            classes: optional number of classes to classify images
-            weights_path: path to pre-trained weights
-        # Returns
-            A Keras model instance.
+from rastervision.common.models.custom_layers import Scale
+from rastervision.common.utils import download_weights
+
+def remove_top(model):
+
+    return model
+
+def DenseNet121(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.5,
+                dropout_rate=0.0, weight_decay=1e-4, weights=None,
+                classes=1000, input_shape=None, activation='softmax'):
     '''
-    eps = 1.1e-5
+    DenseNet 121 Model for Keras
+    Model Schema is based on
+    https://github.com/flyyufelix/DenseNet-Keras
+    ImageNet Pretrained Weights
+    Theano: https://drive.google.com/open?id=0Byy2AcGyEVxfMlRYb3YzV210VzQ
+    TensorFlow: https://drive.google.com/open?id=0Byy2AcGyEVxfSTA4SHJVOHNuTXc
+    # Arguments
+        nb_dense_block: number of dense blocks to add to end
+        growth_rate: number of filters to add per dense block
+        nb_filter: initial number of filters
+        reduction: reduction factor of transition blocks.
+        dropout_rate: dropout rate
+        weight_decay: weight decay factor
+        classes: optional number of classes to classify images
+        weights_path: path to pre-trained weights
+    # Returns
+        A Keras model instance.
+    '''
 
-    # compute compression factor
     compression = 1.0 - reduction
+    eps = 1.1e-5
     global concat_axis
     concat_axis = 3
 
-    if input_tensor is None:
-        input_tensor = Input(shape=(224, 224, 3), name='data')
+    if input_shape is None:
+        img_input = Input(shape=(224, 224, 3), name='data')
+    else:
+        img_input = Input(input_shape)
 
     # From architecture for ImageNet (Table 1 in the paper)
     nb_filter = 64
     nb_layers = [6,12,24,16] # For DenseNet-121
 
     # Initial convolution
-    x = ZeroPadding2D((3, 3), name='conv1_zeropadding')(input_tensor)
+    x = ZeroPadding2D((3, 3), name='conv1_zeropadding')(img_input)
     x = Convolution2D(nb_filter, 7, 7, subsample=(2, 2), name='conv1', bias=False)(x)
     x = BatchNormalization(epsilon=eps, axis=concat_axis, name='conv1_bn')(x)
     x = Scale(axis=concat_axis, name='conv1_scale')(x)
@@ -61,16 +80,30 @@ def DenseNet(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.0,
     x = BatchNormalization(epsilon=eps, axis=concat_axis, name='conv'+str(final_stage)+'_blk_bn')(x)
     x = Scale(axis=concat_axis, name='conv'+str(final_stage)+'_blk_scale')(x)
     x = Activation('relu', name='relu'+str(final_stage)+'_blk')(x)
-    x = GlobalAveragePooling2D(name='pool'+str(final_stage))(x)
 
-    x = Dense(classes, name='fc6')(x)
-    x = Activation('softmax', name='prob')(x)
+    x_fc = GlobalAveragePooling2D(name='pool'+str(final_stage))(x)
+    x_fc = Dense(1000, name='fc6')(x_fc)
+    x_fc = Activation('softmax', name='prob')(x_fc)
 
-    # Create model.
-    model = Model(input_tensor, x, name='densenet121')
+    model = Model(img_input, x_fc, name='densenet')
 
-    if weights_path is not None:
-      model.load_weights(weights_path)
+    # load weights
+    if weights == 'imagenet':
+        weights_path = '/opt/data/weights/densenet121_weights_tf.h5'
+        if not exists(weights_path):
+            download_weights("densenet121_weights_tf.h5")
+        model.load_weights(weights_path, by_name=True)
+
+    # Truncate and replace softmax layer for transfer learning
+    # Cannot use model.layers.pop() since model is not of Sequential() type
+    # The method below works since pre-trained weights are stored in layers but not in the model
+    x_newfc = GlobalAveragePooling2D(name='pool'+str(final_stage))(x)
+    x_newfc = Dense(classes, name='fc6')(x_newfc)
+    x_newfc = Activation('softmax', name='prob')(x_newfc)
+
+    model = Model(img_input, x_newfc)
+
+    #model = remove_top(model)
 
     return model
 
