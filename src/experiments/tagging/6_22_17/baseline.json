@@ -11,7 +11,7 @@
     "model_type": "baseline_resnet",
     "train_ratio": 0.8,
     "nb_eval_plot_samples": 100,
-    "epochs": 10,
+    "epochs": 20,
     "validation_steps": 120,
     "augment_methods": ["hflip", "vflip", "rotate90"],
     "run_name": "tagging/6_22_17/baseline",
