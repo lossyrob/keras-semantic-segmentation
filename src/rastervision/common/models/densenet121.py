@@ -99,7 +99,7 @@ def DenseNet121(nb_dense_block=4, growth_rate=32, nb_filter=64, reduction=0.5,
     # The method below works since pre-trained weights are stored in layers but not in the model
     x_newfc = GlobalAveragePooling2D(name='pool'+str(final_stage))(x)
     x_newfc = Dense(classes, name='fc6')(x_newfc)
-    x_newfc = Activation('softmax', name='prob')(x_newfc)
+    x_newfc = Activation(activation, name='prob')(x_newfc)
 
     model = Model(img_input, x_newfc)
 
