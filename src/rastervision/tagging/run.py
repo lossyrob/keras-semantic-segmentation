@@ -22,11 +22,10 @@ from rastervision.tagging.tasks.train_thresholds import (
 class TaggingRunner(Runner):
     def __init__(self):
         self.valid_tasks = [
-            TRAIN_MODEL, PLOT_CURVES,
+            TRAIN_MODEL, VALIDATION_EVAL, PLOT_CURVES,
             TRAIN_PROBS, VALIDATION_PROBS, TEST_PROBS,
             TRAIN_THRESHOLDS,
-            TRAIN_PREDICT, VALIDATION_PREDICT, TEST_PREDICT,
-            VALIDATION_EVAL]
+            TRAIN_PREDICT, VALIDATION_PREDICT, TEST_PREDICT]
         self.model_factory_class = TaggingModelFactory
         self.data_generator_factory_class = TaggingDataGeneratorFactory
         self.options_class = TaggingOptions
