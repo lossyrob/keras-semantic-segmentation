@@ -226,7 +226,10 @@ class PlanetKaggleFileGenerator(FileGenerator):
         save_json(tag_store.get_tag_counts(dataset.all_tags), counts_path)
 
     def generate_file_inds(self, path):
-        paths = glob.glob(join(path, '*.{}'.format(self.file_extension)))
+        if self.file_extension:
+            paths = glob.glob(join(path, '*.{}'.format(self.file_extension)))
+        else:
+            paths = glob.glob(join(path, '*.*')
         file_inds = []
         for path in paths:
             file_ind = splitext(basename(path))[0]
@@ -325,7 +328,46 @@ class PlanetKaggleTiffFileGenerator(PlanetKaggleFileGenerator):
             datasets_path, options).write_channel_stats(proc_data_path)
 
 
-class PlanetKaggleJpgFileGenerator(PlanetKaggleFileGenerator):
+class PlanetKaggleTiffPredictFileGenerator(PlanetKaggleFileGenerator):
+    def __init__(self, datasets_path, options):
+        self.dev_dir = 'train-jpg'
+        self.test_dir = 'train-tif-v2'
+        self.file_names = [
+            'train-jpg.zip', 'train-tif-v2.zip', 'train_v2.csv.zip',
+            'planet_kaggle_jpg_channel_stats.json']
+        self.file_extension = None
+        self.dataset = JpgDataset()
+        self.name = 'planet_kaggle_jpg_tiff_predict'
+        self.drop_file_inds_file = None
+
+        super().__init__(datasets_path, options)
+
+    def load_img(self, file_path, window):
+        import rasterio
+        with rasterio.open(file_path) as src:
+            r, g, b = src.read(window=window)
+            img = np.dstack([r, g, b])
+            return img
+
+    @staticmethod
+    def preprocess(datasets_path):
+        PlanetKaggleFileGenerator.preprocess(datasets_path)
+
+        proc_data_path = join(datasets_path, PLANET_KAGGLE)
+        _makedirs(proc_data_path)
+
+        class Options():
+            def __init__(self):
+                self.active_input_inds = [0, 1, 2]
+                self.train_ratio = 0.8
+                self.cross_validation = None
+                self.rare_sample_prob = None
+
+        options = Options()
+        PlanetKaggleJpgFileGenerator(
+            datasets_path, options).write_channel_stats(proc_data_path)
+
+        class PlanetKaggleJpgFileGenerator(PlanetKaggleFileGenerator):
     def __init__(self, datasets_path, options):
         self.dev_dir = 'train-jpg'
         self.test_dir = 'test-jpg'

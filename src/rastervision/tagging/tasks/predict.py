@@ -55,3 +55,6 @@ def validation_predict(run_path, model, options, generator):
 
 def test_predict(run_path, model, options, generator):
     predict(run_path, model, options, generator, TEST)
+
+def tiff_predict(run_path, model, options, generator):
+    predict(run_path, model, options, generator, "TIFF")

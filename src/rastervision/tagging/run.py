@@ -46,3 +46,6 @@ class TaggingRunner(Runner):
         elif task == TEST_PREDICT:
             test_predict(
                 self.run_path, self.model, self.options, self.generator)
+        elif task == "TIFF_PREDICT":
+            test_predict(
+                self.run_path, self.model, self.options, self.generator)
