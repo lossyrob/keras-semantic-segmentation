@@ -6,22 +6,28 @@ docker login -u="$QUAY_USERNAME" -p="$QUAY_PASSWORD" quay.io
 
 # Tag all images with git commit and as latest
 
-docker tag ${CPU_IMAGE} "${CPU_TAG}-${TAG}"
-docker tag ${CPU_IMAGE} "${CPU_TAG}-latest"
+docker tag ${BASE_IMAGE} "${BASE_TAG}-${TAG}"
+# docker tag ${BASE_IMAGE} "${BASE_TAG}-latest"
 
-docker tag ${GPU_IMAGE} "${GPU_TAG}-${TAG}"
-docker tag ${GPU_IMAGE} "${GPU_TAG}-latest"
+# docker tag ${CPU_IMAGE} "${CPU_TAG}-${TAG}"
+# docker tag ${CPU_IMAGE} "${CPU_TAG}-latest"
 
-docker tag ${JUPYTER_IMAGE} "${JUPYTER_TAG}-${TAG}"
-docker tag ${JUPYTER_IMAGE} "${JUPYTER_TAG}-latest"
+# docker tag ${GPU_IMAGE} "${GPU_TAG}-${TAG}"
+# docker tag ${GPU_IMAGE} "${GPU_TAG}-latest"
+
+# docker tag ${JUPYTER_IMAGE} "${JUPYTER_TAG}-${TAG}"
+# docker tag ${JUPYTER_IMAGE} "${JUPYTER_TAG}-latest"
 
 # Push to Quay
 
-docker push "${CPU_TAG}:${TAG}"
-docker push "${CPU_TAG}:latest"
+docker push "${BASE_TAG}:${TAG}"
+# docker push "${BASE_TAG}:latest"
 
-docker push "${GPU_TAG}:${TAG}"
-docker push "${GPU_TAG}:latest"
+# docker push "${CPU_TAG}:${TAG}"
+# docker push "${CPU_TAG}:latest"
 
-docker push "${JUPYTER_TAG}:${TAG}"
-docker push "${JUPYTER_TAG}:latest"
+# docker push "${GPU_TAG}:${TAG}"
+# docker push "${GPU_TAG}:latest"
+
+# docker push "${JUPYTER_TAG}:${TAG}"
+# docker push "${JUPYTER_TAG}:latest"
