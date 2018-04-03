@@ -1,0 +1,13 @@
+#!/bin/bash
+
+FAMILY=quay.io/raster-vision
+
+BASE_IMAGE=raster-vision-base
+CPU_IMAGE=raster-vision-cpu
+GPU_IMAGE=raster-vision-gpu
+JUPYTER_IMAGE=raster-vision-jupyter
+
+BASE_TAG=${FAMILY}/raster-vision:base
+CPU_TAG=${FAMILY}/raster-vision:cpu
+GPU_TAG=${FAMILY}/raster-vision:gpu
+JUPYTER_TAG=${FAMILY}/raster-vision:jupyter

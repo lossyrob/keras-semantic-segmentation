@@ -1,0 +1,30 @@
+sudo: required
+
+language:
+   - python
+
+scala:
+   - "2.11.11"
+
+jdk:
+   - openjdk8
+
+services:
+   - docker
+
+env:
+   global:
+      - CLEAN_TRAVIS_TAG=${TRAVIS_TAG/[[:space:]]/}
+      - TAG=${CLEAN_TRAVIS_TAG:-${TRAVIS_COMMIT:0:7}}
+
+branches:
+   only:
+      - rde/travis-quay
+
+script:
+   - TRAVIS=1 TAG=$TAG .travis/build
+
+after_success:
+   - if [ "$QUAY_USERNAME" != "" -a "$QUAY_PASSWORD" != "" ]; then
+     .travis/publish
+     fi
