@@ -26,5 +26,5 @@ script:
 
 after_success:
    - if [ "$QUAY_USERNAME" != "" -a "$QUAY_PASSWORD" != "" ]; then
-     .travis/publish
+       .travis/publish;
      fi
