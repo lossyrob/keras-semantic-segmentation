@@ -33,12 +33,12 @@ USER keras
 # Python
 ARG python_version=3.5.1
 
-RUN conda install -y python=${python_version} scikit-learn six h5py \
+RUN conda install -q -y python=${python_version} scikit-learn six h5py \
         matplotlib pillow rasterio scikit-image opencv && \
-    conda install -c conda-forge rtree && \
+    conda install -q -c conda-forge rtree && \
     conda clean -yt
 
-RUN pip install flake8 awscli spectral lxml shapely pandas boto3==1.6.0 \
+RUN pip install -q flake8 awscli spectral lxml shapely pandas boto3==1.6.0 \
     pyproj imageio
 
 # Ensure that the keras user will have permission to write model into /opt/data
