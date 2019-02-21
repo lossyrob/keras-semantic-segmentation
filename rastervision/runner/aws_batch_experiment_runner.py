@@ -9,7 +9,7 @@ import rastervision as rv
 
 DEPENDENCY_GROUP_JOB = 'DEPENDENCY_GROUP'
 
-CPU_STAGES = {rv.ANALYZE, rv.CHIP, rv.EVAL, rv.BUNDLE, DEPENDENCY_GROUP_JOB}
+CPU_STAGES = {rv.ANALYZE, rv.CHIP, rv.BUNDLE, DEPENDENCY_GROUP_JOB}
 
 NOOP_COMMAND = 'python -m rastervision --help'
 
